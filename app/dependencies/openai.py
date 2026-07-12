@@ -1,6 +1,7 @@
 from openai import AsyncOpenAI
-from app.core.config import get_settings
 from functools import lru_cache
+
+from app.core.config import get_settings
 
 
 @lru_cache
