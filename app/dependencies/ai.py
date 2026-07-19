@@ -1,7 +1,7 @@
 from fastapi import Depends
 from openai import AsyncOpenAI
 
-from app.dependencies.openai import get_openai_client
+from app.clients.openai import get_openai_client
 from app.services.ai_service import AIService
 
 
