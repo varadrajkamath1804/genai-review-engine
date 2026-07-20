@@ -1,5 +1,5 @@
 from groq import AsyncGroq
-
+import json
 from app.core.config import Settings
 from app.models.review import ReviewInput
 from app.models.sentiment import SentimentResponse
@@ -19,16 +19,23 @@ class AIService:
         self.settings = settings
 
     async def analyze_review(self, review: ReviewInput) -> SentimentResponse:
-        print(review)
-        print(review.review)
-
         messages = [
             {
                 "role": "system",
                 "content": (
-                    "You are a sentiment analysis assistant.\n"
-                    "Analyze customer reviews.\n"
-                    "Return the sentiment of the review."
+                    """You are a sentiment analysis service.
+
+                    The user's message contains a customer review.
+                    Return ONLY a JSON object in this format:
+
+                {
+                  "sentiment": "Positive",
+                  "confidence": 0.98
+                }
+
+                Do not include markdown.
+                Do not include explanations.
+                Do not include additional text."""
                 ),
             },
             {
@@ -41,12 +48,11 @@ class AIService:
                 model=self.settings.GROQ_MODEL, messages=messages, temperature=0
             )
 
-            print(response.choices[0].message.content)
+            content = response.choices[0].message.content
+            parsed_response = json.loads(content)
 
-            return SentimentResponse(
-                sentiment=response.choices[0].message.content,
-                confidence=1.0,
-            )
+            validated_response = SentimentResponse.model_validate(parsed_response)
+            return validated_response
 
         except Exception as error:
             raise RuntimeError("Failed to analyze review") from error
