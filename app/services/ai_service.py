@@ -1,5 +1,6 @@
-from openai import AsyncOpenAI
+from groq import AsyncGroq
 
+from app.core.config import Settings
 from app.models.review import ReviewInput
 from app.models.sentiment import SentimentResponse
 
@@ -9,34 +10,43 @@ class AIService:
     Service responsible for AI-powered review analysis.
     """
 
-    def __init__(self, client: AsyncOpenAI):
+    def __init__(
+        self,
+        client: AsyncGroq,
+        settings: Settings,
+    ):
         self.client = client
+        self.settings = settings
 
     async def analyze_review(self, review: ReviewInput) -> SentimentResponse:
-        prompt = f"""Analyze the following customer review.
+        print(review)
+        print(review.review)
 
-        Return:
-        - sentiment
-        - confidence
-
-        Review:
-        {review.review}
-        """
-
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are a sentiment analysis assistant.\n"
+                    "Analyze customer reviews.\n"
+                    "Return the sentiment of the review."
+                ),
+            },
+            {
+                "role": "user",
+                "content": review.review,
+            },
+        ]
         try:
-            pass
-            # response = await self.client.responses.create(
-            #     model="gpt-4.1-mini",
-            #     input=prompt,
-            # )
+            response = await self.client.chat.completions.create(
+                model=self.settings.GROQ_MODEL, messages=messages, temperature=0
+            )
 
-            # Parse the AI response here.
+            print(response.choices[0].message.content)
+
+            return SentimentResponse(
+                sentiment=response.choices[0].message.content,
+                confidence=1.0,
+            )
 
         except Exception as error:
             raise RuntimeError("Failed to analyze review") from error
-
-        mock_response = {"sentiment": "Positive", "confidence": 0.99}
-
-        return SentimentResponse(
-            sentiment=mock_response["sentiment"], confidence=mock_response["confidence"]
-        )
