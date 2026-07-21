@@ -8,6 +8,8 @@ from app.models.review import ReviewInput
 from app.models.sentiment import SentimentResponse
 from app.services.ai_service import AIService
 from app.dependencies.ai import get_ai_service
+from app.core.database import engine
+from sqlalchemy import text
 
 
 @asynccontextmanager
@@ -28,3 +30,11 @@ async def analyze_review(
 ) -> SentimentResponse:
 
     return await ai_service.analyze_review(review)
+
+
+@app.get("/db/health")
+async def database_health():
+    with engine.connect() as conn:
+        conn.execute(text("SELECT 1"))
+
+    return {"status": "connected"}
