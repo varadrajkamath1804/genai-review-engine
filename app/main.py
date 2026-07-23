@@ -5,6 +5,7 @@ from groq import AsyncGroq
 
 from app.clients.groq import create_groq_client
 from app.models.review import ReviewInput
+from app.models.review_response import ReviewResponse
 from app.models.sentiment import SentimentResponse
 from app.services.ai_service import AIService
 from app.dependencies.ai import get_ai_service
@@ -30,6 +31,16 @@ async def analyze_review(
 ) -> SentimentResponse:
 
     return await ai_service.analyze_review(review)
+
+
+@app.get("/reviews", response_model=list[ReviewResponse])
+async def get_all_reviews(ai_service: AIService = Depends(get_ai_service)):
+    return await ai_service.get_all_reviews()
+
+
+@app.get("/reviews/{review_id}", response_model=ReviewResponse)
+async def get_review(review_id: int, ai_service: AIService = Depends(get_ai_service)):
+    return await ai_service.get_review(review_id)
 
 
 @app.get("/db/health")
