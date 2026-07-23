@@ -2,6 +2,7 @@ from groq import AsyncGroq
 import json
 from fastapi import HTTPException
 
+from app.db.models.review import Review
 from app.core.config import Settings
 from app.models.review import ReviewInput
 from app.models.review_response import ReviewResponse
@@ -24,7 +25,10 @@ class AIService:
         self.settings = settings
         self.review_repository = review_repository
 
-    async def analyze_review(self, review: ReviewInput) -> SentimentResponse:
+    async def analyze_review(
+        self,
+        review: ReviewInput,
+    ) -> SentimentResponse:
         messages = [
             {
                 "role": "system",
@@ -71,18 +75,33 @@ class AIService:
         except Exception as error:
             raise RuntimeError("Failed to analyze review") from error
 
-    async def get_all_reviews(self) -> list[ReviewResponse]:
+    async def get_all_reviews(
+        self,
+        page: int,
+        size: int,
+        sentiment: str | None,
+    ) -> list[ReviewResponse]:
         try:
-            reviews = await self.review_repository.get_all()
+            reviews = await self.review_repository.get_all(
+                page,
+                size,
+                sentiment,
+            )
             return [ReviewResponse.model_validate(review) for review in reviews]
         except Exception as error:
             raise RuntimeError("Failed to Get Reviews") from error
 
-    async def get_review(self, review_id) -> ReviewResponse:
+    async def get_review(
+        self,
+        review_id: int,
+    ) -> ReviewResponse:
         try:
             review = await self.review_repository.get_by_id(review_id)
             if review is None:
-                raise HTTPException(status_code=404, detail="Review not found")
+                raise HTTPException(
+                    status_code=404,
+                    detail="Review not found",
+                )
             return ReviewResponse.model_validate(review)
         except HTTPException:
             raise

@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Query
 from groq import AsyncGroq
+from typing import Annotated
 
 from app.clients.groq import create_groq_client
 from app.models.review import ReviewInput
@@ -34,8 +35,13 @@ async def analyze_review(
 
 
 @app.get("/reviews", response_model=list[ReviewResponse])
-async def get_all_reviews(ai_service: AIService = Depends(get_ai_service)):
-    return await ai_service.get_all_reviews()
+async def get_all_reviews(
+    page: Annotated[int, Query(ge=1)] = 1,
+    size: Annotated[int, Query(ge=1, le=100)] = 10,
+    sentiment: str | None = None,
+    ai_service: AIService = Depends(get_ai_service),
+):
+    return await ai_service.get_all_reviews(page, size, sentiment)
 
 
 @app.get("/reviews/{review_id}", response_model=ReviewResponse)
