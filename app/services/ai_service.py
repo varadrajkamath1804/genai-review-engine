@@ -80,12 +80,14 @@ class AIService:
         page: int,
         size: int,
         sentiment: str | None,
+        review: str | None,
     ) -> list[ReviewResponse]:
         try:
             reviews = await self.review_repository.get_all(
                 page,
                 size,
                 sentiment,
+                review,
             )
             return [ReviewResponse.model_validate(review) for review in reviews]
         except Exception as error:

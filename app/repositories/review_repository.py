@@ -22,6 +22,7 @@ class ReviewRepository:
         page,
         size,
         sentiment,
+        review,
     ) -> list[Review]:
 
         offset = (page - 1) * size
@@ -29,6 +30,9 @@ class ReviewRepository:
 
         if sentiment is not None:
             query = query.where(Review.sentiment == sentiment)
+
+        if review is not None:
+            query = query.where(Review.review.ilike(f"%{review}%"))
 
         query = query.limit(size).offset(offset)
 

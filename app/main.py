@@ -39,9 +39,10 @@ async def get_all_reviews(
     page: Annotated[int, Query(ge=1)] = 1,
     size: Annotated[int, Query(ge=1, le=100)] = 10,
     sentiment: str | None = None,
+    review: str | None = None,
     ai_service: AIService = Depends(get_ai_service),
 ):
-    return await ai_service.get_all_reviews(page, size, sentiment)
+    return await ai_service.get_all_reviews(page, size, sentiment, review)
 
 
 @app.get("/reviews/{review_id}", response_model=ReviewResponse)
