@@ -6,6 +6,7 @@ from typing import Annotated
 import logging
 
 from app.core.logging_config import configure_logging
+from app.middleware.request_logging import RequestLoggingMiddleware
 from app.exceptions.handlers import register_exception_handlers
 from app.clients.groq import create_groq_client
 from app.models.query import SortField, SortOrder
@@ -35,6 +36,7 @@ async def lifespan(
 
 app = FastAPI(lifespan=lifespan)
 register_exception_handlers(app)
+app.add_middleware(RequestLoggingMiddleware)
 
 
 @app.post("/analyze")
