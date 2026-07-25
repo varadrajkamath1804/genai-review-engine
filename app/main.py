@@ -98,3 +98,10 @@ async def update_review(
         review_id,
         review,
     )
+
+
+@app.delete("/reviews/{review_id}")
+async def delete_review(
+    review_id: int, ai_service: AIService = Depends(get_ai_service)
+):
+    await ai_service.delete_review(review_id)

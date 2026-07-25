@@ -175,3 +175,16 @@ class AIService:
         content = response.choices[0].message.content
         parsed_response = json.loads(content)
         return SentimentResponse.model_validate(parsed_response)
+
+    async def delete_review(
+        self,
+        review_id: int,
+    ) -> None:
+
+        review = await self.review_repository.get_by_id(review_id)
+        if review is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Review not found",
+            )
+        await self.review_repository.delete(review)

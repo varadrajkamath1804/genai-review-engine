@@ -66,3 +66,11 @@ class ReviewRepository:
         await self.db.commit()
         await self.db.refresh(review)
         return review
+
+    async def delete(
+        self,
+        review: Review,
+    ) -> None:
+        print("Deleting Review", review)
+        await self.db.delete(review)
+        await self.db.commit()
