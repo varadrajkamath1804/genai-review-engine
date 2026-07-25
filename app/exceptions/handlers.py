@@ -3,6 +3,9 @@ from fastapi.responses import JSONResponse
 from http import HTTPStatus
 
 from app.exceptions.base import BaseAppException
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def register_exception_handlers(app: FastAPI) -> None:
@@ -27,6 +30,13 @@ def register_exception_handlers(app: FastAPI) -> None:
         request: Request,
         exc: Exception,
     ) -> JSONResponse:
+
+        logger.exception(
+            "Unhandled exception while processing %s %s",
+            request.method,
+            request.url,
+        )
+
         return JSONResponse(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             content={

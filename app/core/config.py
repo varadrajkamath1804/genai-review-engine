@@ -6,6 +6,11 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str
     GROQ_MODEL: str
     DATABASE_URL: str
+    LOG_LEVEL: str
+    LOG_TO_FILE: bool
+    LOG_FILE: str
+    LOG_MAX_BYTES: int
+    LOG_BACKUP_COUNT: int
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

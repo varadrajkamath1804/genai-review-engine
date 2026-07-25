@@ -1,8 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
+import logging
 
 from app.db.models.review import Review
 from app.models.query import SortOrder, SortField
+
+logger = logging.getLogger(__name__)
 
 
 class ReviewRepository:

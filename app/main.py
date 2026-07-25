@@ -3,7 +3,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, Query
 from groq import AsyncGroq
 from typing import Annotated
+import logging
 
+from app.core.logging_config import configure_logging
 from app.exceptions.handlers import register_exception_handlers
 from app.clients.groq import create_groq_client
 from app.models.query import SortField, SortOrder
@@ -16,16 +18,19 @@ from app.dependencies.ai import get_ai_service
 from app.core.database import engine
 from sqlalchemy import text
 
+configure_logging()
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(
     app: FastAPI,
 ):
     app.state.groq = create_groq_client()
-    print("Groq Client created")
+    logger.info("Groq client initialized")
     yield
     await app.state.groq.close()
-    print("Groq Client closed")
+    logger.info("Groq client closed")
 
 
 app = FastAPI(lifespan=lifespan)
@@ -107,3 +112,8 @@ async def delete_review(
     review_id: int, ai_service: AIService = Depends(get_ai_service)
 ):
     await ai_service.delete_review(review_id)
+
+
+@app.get("/test")
+async def test():
+    1 / 0

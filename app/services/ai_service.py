@@ -1,5 +1,6 @@
 from groq import AsyncGroq
 import json
+import logging
 
 from app.exceptions.review import ReviewNotFoundException
 from app.db.models.review import Review
@@ -10,6 +11,8 @@ from app.models.update_review import UpdateReview
 from app.models.review_response import ReviewResponse
 from app.models.sentiment import SentimentResponse
 from app.repositories.review_repository import ReviewRepository
+
+logger = logging.getLogger(__name__)
 
 
 class AIService:
