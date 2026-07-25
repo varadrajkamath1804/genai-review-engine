@@ -3,8 +3,10 @@ import json
 from fastapi import HTTPException
 
 from app.db.models.review import Review
+from app.models.query import SortField, SortOrder
 from app.core.config import Settings
 from app.models.review import ReviewInput
+from app.models.update_review import UpdateReview
 from app.models.review_response import ReviewResponse
 from app.models.sentiment import SentimentResponse
 from app.repositories.review_repository import ReviewRepository
@@ -55,7 +57,9 @@ class AIService:
         ]
         try:
             response = await self.client.chat.completions.create(
-                model=self.settings.GROQ_MODEL, messages=messages, temperature=0
+                model=self.settings.GROQ_MODEL,
+                messages=messages,
+                temperature=0,
             )
 
             content = response.choices[0].message.content
@@ -81,6 +85,8 @@ class AIService:
         size: int,
         sentiment: str | None,
         review: str | None,
+        sort_by: SortField,
+        sort_order: SortOrder,
     ) -> list[ReviewResponse]:
         try:
             reviews = await self.review_repository.get_all(
@@ -88,6 +94,8 @@ class AIService:
                 size,
                 sentiment,
                 review,
+                sort_by,
+                sort_order,
             )
             return [ReviewResponse.model_validate(review) for review in reviews]
         except Exception as error:
@@ -104,8 +112,66 @@ class AIService:
                     status_code=404,
                     detail="Review not found",
                 )
-            return ReviewResponse.model_validate(review)
+            return ReviewResponse.model_validate(
+                review,
+            )
         except HTTPException:
             raise
         except Exception as error:
             raise RuntimeError("Failed to Get Review") from error
+
+    async def update_review(
+        self,
+        review_id: int,
+        review: UpdateReview,
+    ) -> ReviewResponse:
+        existing_review = await self.review_repository.get_by_id(review_id)
+        if existing_review is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Review not Found",
+            )
+        validated_response = await self._analyze_sentiment(review.review)
+        existing_review.review = review.review
+        existing_review.sentiment = validated_response.sentiment
+        existing_review.confidence = validated_response.confidence
+        updated_review = await self.review_repository.update(existing_review)
+        return ReviewResponse.model_validate(updated_review)
+
+    async def _analyze_sentiment(
+        self,
+        review: str,
+    ) -> SentimentResponse:
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    """You are a sentiment analysis service.
+        
+                            The user's message contains a customer review.
+                            Return ONLY a JSON object in this format:
+        
+                        {
+                          "sentiment": "Positive",
+                          "confidence": 0.98
+                        }
+        
+                        Do not include markdown.
+                        Do not include explanations.
+                        Do not include additional text."""
+                ),
+            },
+            {
+                "role": "user",
+                "content": review,
+            },
+        ]
+        response = await self.client.chat.completions.create(
+            model=self.settings.GROQ_MODEL,
+            messages=messages,
+            temperature=0,
+        )
+
+        content = response.choices[0].message.content
+        parsed_response = json.loads(content)
+        return SentimentResponse.model_validate(parsed_response)
