@@ -4,6 +4,7 @@ from fastapi import FastAPI, Depends, Query
 from groq import AsyncGroq
 from typing import Annotated
 
+from app.exceptions.handlers import register_exception_handlers
 from app.clients.groq import create_groq_client
 from app.models.query import SortField, SortOrder
 from app.models.review import ReviewInput
@@ -28,6 +29,7 @@ async def lifespan(
 
 
 app = FastAPI(lifespan=lifespan)
+register_exception_handlers(app)
 
 
 @app.post("/analyze")

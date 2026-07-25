@@ -1,7 +1,7 @@
 from groq import AsyncGroq
 import json
-from fastapi import HTTPException
 
+from app.exceptions.review import ReviewNotFoundException
 from app.db.models.review import Review
 from app.models.query import SortField, SortOrder
 from app.core.config import Settings
@@ -55,29 +55,26 @@ class AIService:
                 "content": review.review,
             },
         ]
-        try:
-            response = await self.client.chat.completions.create(
-                model=self.settings.GROQ_MODEL,
-                messages=messages,
-                temperature=0,
-            )
 
-            content = response.choices[0].message.content
-            parsed_response = json.loads(content)
+        response = await self.client.chat.completions.create(
+            model=self.settings.GROQ_MODEL,
+            messages=messages,
+            temperature=0,
+        )
 
-            validated_response = SentimentResponse.model_validate(parsed_response)
+        content = response.choices[0].message.content
+        parsed_response = json.loads(content)
 
-            review_entity = Review(
-                review=review.review,
-                sentiment=validated_response.sentiment,
-                confidence=validated_response.confidence,
-            )
+        validated_response = SentimentResponse.model_validate(parsed_response)
 
-            await self.review_repository.save(review_entity)
-            return validated_response
+        review_entity = Review(
+            review=review.review,
+            sentiment=validated_response.sentiment,
+            confidence=validated_response.confidence,
+        )
 
-        except Exception as error:
-            raise RuntimeError("Failed to analyze review") from error
+        await self.review_repository.save(review_entity)
+        return validated_response
 
     async def get_all_reviews(
         self,
@@ -88,37 +85,28 @@ class AIService:
         sort_by: SortField,
         sort_order: SortOrder,
     ) -> list[ReviewResponse]:
-        try:
-            reviews = await self.review_repository.get_all(
-                page,
-                size,
-                sentiment,
-                review,
-                sort_by,
-                sort_order,
-            )
-            return [ReviewResponse.model_validate(review) for review in reviews]
-        except Exception as error:
-            raise RuntimeError("Failed to Get Reviews") from error
+        reviews = await self.review_repository.get_all(
+            page,
+            size,
+            sentiment,
+            review,
+            sort_by,
+            sort_order,
+        )
+        return [ReviewResponse.model_validate(review) for review in reviews]
 
     async def get_review(
         self,
         review_id: int,
     ) -> ReviewResponse:
-        try:
-            review = await self.review_repository.get_by_id(review_id)
-            if review is None:
-                raise HTTPException(
-                    status_code=404,
-                    detail="Review not found",
-                )
-            return ReviewResponse.model_validate(
-                review,
+        review = await self.review_repository.get_by_id(review_id)
+        if review is None:
+            raise ReviewNotFoundException(
+                review_id,
             )
-        except HTTPException:
-            raise
-        except Exception as error:
-            raise RuntimeError("Failed to Get Review") from error
+        return ReviewResponse.model_validate(
+            review,
+        )
 
     async def update_review(
         self,
@@ -127,10 +115,7 @@ class AIService:
     ) -> ReviewResponse:
         existing_review = await self.review_repository.get_by_id(review_id)
         if existing_review is None:
-            raise HTTPException(
-                status_code=404,
-                detail="Review not Found",
-            )
+            raise ReviewNotFoundException(review_id)
         validated_response = await self._analyze_sentiment(review.review)
         existing_review.review = review.review
         existing_review.sentiment = validated_response.sentiment
@@ -183,8 +168,5 @@ class AIService:
 
         review = await self.review_repository.get_by_id(review_id)
         if review is None:
-            raise HTTPException(
-                status_code=404,
-                detail="Review not found",
-            )
+            raise ReviewNotFoundException(review_id)
         await self.review_repository.delete(review)
