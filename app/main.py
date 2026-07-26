@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
+from sqlalchemy import text
 
-from fastapi import FastAPI, Depends, Query
+from fastapi import FastAPI, Depends, Query, status
 from groq import AsyncGroq
 from typing import Annotated
 import logging
@@ -9,15 +10,18 @@ from app.core.logging_config import configure_logging
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.exceptions.handlers import register_exception_handlers
 from app.clients.groq import create_groq_client
-from app.models.query import SortField, SortOrder
-from app.models.review import ReviewInput
-from app.models.review_response import ReviewResponse
-from app.models.update_review import UpdateReview
-from app.models.sentiment import SentimentResponse
+from app.models.review.query import SortField, SortOrder
+from app.models.review.review import ReviewInput
+from app.models.review.review_response import ReviewResponse
+from app.models.review.update_review import UpdateReview
+from app.models.review.sentiment import SentimentResponse
 from app.services.ai_service import AIService
 from app.dependencies.ai import get_ai_service
 from app.core.database import engine
-from sqlalchemy import text
+from app.dependencies.auth import get_auth_service
+from app.models.user.user_create import UserCreate
+from app.models.user.user_response import UserResponse
+from app.services.auth_service import AuthService
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -116,6 +120,15 @@ async def delete_review(
     await ai_service.delete_review(review_id)
 
 
-@app.get("/test")
-async def test():
-    1 / 0
+@app.post(
+    "/signup",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def signup(
+    user: UserCreate,
+    auth_service: AuthService = Depends(get_auth_service),
+):
+    return await auth_service.signup(
+        user,
+    )

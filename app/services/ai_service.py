@@ -4,12 +4,12 @@ import logging
 
 from app.exceptions.review import ReviewNotFoundException
 from app.db.models.review import Review
-from app.models.query import SortField, SortOrder
+from app.models.review.query import SortField, SortOrder
 from app.core.config import Settings
-from app.models.review import ReviewInput
-from app.models.update_review import UpdateReview
-from app.models.review_response import ReviewResponse
-from app.models.sentiment import SentimentResponse
+from app.models.review.review import ReviewInput
+from app.models.review.update_review import UpdateReview
+from app.models.review.review_response import ReviewResponse
+from app.models.review.sentiment import SentimentResponse
 from app.repositories.review_repository import ReviewRepository
 
 logger = logging.getLogger(__name__)
