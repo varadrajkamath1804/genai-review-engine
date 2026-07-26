@@ -28,3 +28,12 @@ class InvalidCredentialsException(BaseAppException):
             error_code="INVALID CREDENTIALS",
             status_code=HTTPStatus.UNAUTHORIZED,
         )
+
+
+class ForbiddenException(BaseAppException):
+    def __init__(self):
+        super().__init__(
+            message="You do not have permission to perform this action.",
+            error_code="FORBIDDEN",
+            status_code=HTTPStatus.FORBIDDEN,
+        )

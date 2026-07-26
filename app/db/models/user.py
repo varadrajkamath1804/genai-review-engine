@@ -1,8 +1,9 @@
 from datetime import datetime
-
+from sqlalchemy import Enum
 from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.models.user.enums import Role
 from app.db.base import Base
 
 
@@ -32,10 +33,10 @@ class User(Base):
     )
 
     # User role (will later become an Enum)
-    role: Mapped[str] = mapped_column(
-        String(20),
+    role: Mapped[Role] = mapped_column(
+        Enum(Role),
         nullable=False,
-        default="USER",
+        default=Role.USER,
     )
 
     # Automatically set when the row is created

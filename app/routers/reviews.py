@@ -2,6 +2,8 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends, Query
 
 from typing import Annotated
+from app.models.user.enums import Role
+from app.dependencies.rbac import RoleChecker
 from app.models.review.query import SortField, SortOrder
 from app.models.review.review import ReviewInput
 from app.models.review.review_response import ReviewResponse
@@ -88,6 +90,6 @@ async def update_review(
 async def delete_review(
     review_id: int,
     ai_service: AIService = Depends(get_ai_service),
-    current_user: Users = Depends(get_current_user),
+    current_user: Users = Depends(RoleChecker(Role.ADMIN)),
 ):
     await ai_service.delete_review(review_id)
