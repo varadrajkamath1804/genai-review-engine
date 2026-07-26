@@ -11,7 +11,9 @@ class Settings(BaseSettings):
     LOG_FILE: str
     LOG_MAX_BYTES: int
     LOG_BACKUP_COUNT: int
-
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

@@ -19,3 +19,12 @@ class UserAlreadyExistsException(BaseAppException):
             error_code="USER ALREADY EXISTS",
             status_code=HTTPStatus.CONFLICT,
         )
+
+
+class InvalidcredentialException(BaseAppException):
+    def __init__(self):
+        super().__init__(
+            message="Invalid Email or Password",
+            error_code="INVALID CREDENTIALS",
+            status_code=HTTPStatus.UNAUTHORIZED,
+        )

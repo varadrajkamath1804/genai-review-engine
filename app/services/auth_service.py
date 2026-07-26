@@ -1,9 +1,12 @@
 from app.db.models.user import User
-from app.exceptions.user import UserAlreadyExistsException
+from app.models.user.user_login import UserLogin
+from app.security.jwt import JWTManager
+from app.exceptions.user import UserAlreadyExistsException, InvalidcredentialException
 from app.models.user.user_create import UserCreate
 from app.models.user.user_response import UserResponse
 from app.repositories.user_repository import UserRepository
 from app.security.hashing import PasswordHasher
+from app.models.user.token_response import TokenResponse
 
 
 class AuthService:
@@ -42,4 +45,38 @@ class AuthService:
 
         return UserResponse.model_validate(
             saved_user,
+        )
+
+    async def login(
+        self,
+        user_login: UserLogin,
+    ) -> TokenResponse:
+        """
+        Authenticate a user and return a JWT.
+        """
+
+        user = await self.user_repository.get_by_email(
+            user_login.email,
+        )
+
+        if not user:
+            raise InvalidcredentialException()
+
+        if not PasswordHasher.verify_password(
+            plain_password=user_login.password,
+            hashed_password=user.password,
+        ):
+            raise InvalidcredentialException()
+
+        access_token = JWTManager.create_access_token(
+            data={
+                "sub": str(user.id),
+                "email": user.email,
+                "role": user.role,
+            }
+        )
+
+        return TokenResponse(
+            access_token=access_token,
+            token_type="Bearer",
         )

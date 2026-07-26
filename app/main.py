@@ -22,6 +22,8 @@ from app.dependencies.auth import get_auth_service
 from app.models.user.user_create import UserCreate
 from app.models.user.user_response import UserResponse
 from app.services.auth_service import AuthService
+from app.models.user.user_login import UserLogin
+from app.models.user.token_response import TokenResponse
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -131,4 +133,17 @@ async def signup(
 ):
     return await auth_service.signup(
         user,
+    )
+
+
+@app.post("/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
+async def login(
+    user_login: UserLogin,
+    auth_service: AuthService = Depends(get_auth_service),
+) -> TokenResponse:
+    """
+    Authenticate user and return JWT.
+    """
+    return await auth_service.login(
+        user_login,
     )
