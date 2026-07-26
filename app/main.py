@@ -1,11 +1,10 @@
 from contextlib import asynccontextmanager
 from sqlalchemy import text
-
-from fastapi import FastAPI, Depends, Query, status
+from http import HTTPStatus
+from fastapi import FastAPI, Depends, Query
 from groq import AsyncGroq
 from typing import Annotated
 import logging
-
 from app.core.logging_config import configure_logging
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.exceptions.handlers import register_exception_handlers
@@ -62,6 +61,7 @@ async def analyze_review(
 @app.get(
     "/reviews",
     response_model=list[ReviewResponse],
+    status_code=HTTPStatus.OK,
 )
 async def get_all_reviews(
     page: Annotated[int, Query(ge=1)] = 1,
@@ -86,6 +86,7 @@ async def get_all_reviews(
 @app.get(
     "/reviews/{review_id}",
     response_model=ReviewResponse,
+    status_code=HTTPStatus.OK,
 )
 async def get_review(
     review_id: int,
@@ -133,7 +134,7 @@ async def delete_review(
 @app.post(
     "/signup",
     response_model=UserResponse,
-    status_code=status.HTTP_201_CREATED,
+    status_code=HTTPStatus.CREATED,
 )
 async def signup(
     user: UserCreate,
@@ -144,7 +145,11 @@ async def signup(
     )
 
 
-@app.post("/login", response_model=TokenResponse, status_code=status.HTTP_200_OK)
+@app.post(
+    "/login",
+    response_model=TokenResponse,
+    status_code=HTTPStatus.OK,
+)
 async def login(
     user_login: UserLogin,
     auth_service: AuthService = Depends(get_auth_service),
