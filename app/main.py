@@ -17,6 +17,7 @@ from app.models.review.update_review import UpdateReview
 from app.models.review.sentiment import SentimentResponse
 from app.services.ai_service import AIService
 from app.dependencies.ai import get_ai_service
+from app.dependencies.current_user import get_current_user
 from app.core.database import engine
 from app.dependencies.auth import get_auth_service
 from app.models.user.user_create import UserCreate
@@ -24,6 +25,7 @@ from app.models.user.user_response import UserResponse
 from app.services.auth_service import AuthService
 from app.models.user.user_login import UserLogin
 from app.models.user.token_response import TokenResponse
+from app.db.models.user import User
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -49,6 +51,7 @@ app.add_middleware(RequestLoggingMiddleware)
 async def analyze_review(
     review: ReviewInput,
     ai_service: AIService = Depends(get_ai_service),
+    current_user: Users = Depends(get_current_user),
 ) -> SentimentResponse:
 
     return await ai_service.analyze_review(
@@ -68,6 +71,7 @@ async def get_all_reviews(
     sort_by: SortField = SortField.id,
     order: SortOrder = SortOrder.asc,
     ai_service: AIService = Depends(get_ai_service),
+    current_user: Users = Depends(get_current_user),
 ):
     return await ai_service.get_all_reviews(
         page,
@@ -86,6 +90,7 @@ async def get_all_reviews(
 async def get_review(
     review_id: int,
     ai_service: AIService = Depends(get_ai_service),
+    current_user: Users = Depends(get_current_user),
 ):
     return await ai_service.get_review(
         review_id,
@@ -108,6 +113,7 @@ async def update_review(
     review_id: int,
     review: UpdateReview,
     ai_service: AIService = Depends(get_ai_service),
+    current_user: Users = Depends(get_current_user),
 ):
     return await ai_service.update_review(
         review_id,
@@ -117,7 +123,9 @@ async def update_review(
 
 @app.delete("/reviews/{review_id}")
 async def delete_review(
-    review_id: int, ai_service: AIService = Depends(get_ai_service)
+    review_id: int,
+    ai_service: AIService = Depends(get_ai_service),
+    current_user: Users = Depends(get_current_user),
 ):
     await ai_service.delete_review(review_id)
 

@@ -21,7 +21,7 @@ class UserAlreadyExistsException(BaseAppException):
         )
 
 
-class InvalidcredentialException(BaseAppException):
+class InvalidCredentialsException(BaseAppException):
     def __init__(self):
         super().__init__(
             message="Invalid Email or Password",

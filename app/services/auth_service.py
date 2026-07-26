@@ -1,7 +1,7 @@
 from app.db.models.user import User
 from app.models.user.user_login import UserLogin
 from app.security.jwt import JWTManager
-from app.exceptions.user import UserAlreadyExistsException, InvalidcredentialException
+from app.exceptions.user import UserAlreadyExistsException, InvalidCredentialsException
 from app.models.user.user_create import UserCreate
 from app.models.user.user_response import UserResponse
 from app.repositories.user_repository import UserRepository
@@ -60,13 +60,13 @@ class AuthService:
         )
 
         if not user:
-            raise InvalidcredentialException()
+            raise InvalidCredentialsException()
 
         if not PasswordHasher.verify_password(
             plain_password=user_login.password,
             hashed_password=user.password,
         ):
-            raise InvalidcredentialException()
+            raise InvalidCredentialsException()
 
         access_token = JWTManager.create_access_token(
             data={
