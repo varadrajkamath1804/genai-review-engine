@@ -15,22 +15,24 @@ class JWTManager:
         data: dict,
     ) -> str:
         settings = get_settings()
-
-        # Copy payload
-        payload = data.copy()
-
-        # Add expiration claim
-        expire = datetime.now(UTC) + timedelta(
-            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+        return JWTManager._create_token(
+            data,
+            timedelta(
+                minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+            ),
         )
 
-        payload["exp"] = expire
+    @staticmethod
+    def create_refresh_token(
+        data: dict,
+    ) -> str:
+        settings = get_settings()
 
-        # Generate signed JWT
-        return jwt.encode(
-            payload,
-            settings.JWT_SECRET_KEY,
-            algorithm=settings.JWT_ALGORITHM,
+        return JWTManager._create_token(
+            data,
+            timedelta(
+                days=settings.REFRESH_TOKEN_EXPIRE_DAYS,
+            ),
         )
 
     @staticmethod
@@ -47,4 +49,21 @@ class JWTManager:
             token,
             settings.JWT_SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM],
+        )
+
+    @staticmethod
+    def _create_token(
+        data: dict,
+        expires_delta: timedelta,
+    ) -> str:
+        settings = get_settings()
+
+        payload = data.copy()
+
+        payload["exp"] = datetime.now(UTC) + expires_delta
+
+        return jwt.encode(
+            payload,
+            settings.JWT_SECRET_KEY,
+            algorithm=settings.JWT_ALGORITHM,
         )

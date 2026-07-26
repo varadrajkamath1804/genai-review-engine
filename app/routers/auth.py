@@ -6,6 +6,7 @@ from app.models.user.user_response import UserResponse
 from app.services.auth_service import AuthService
 from app.models.user.user_login import UserLogin
 from app.models.user.token_response import TokenResponse
+from app.models.user.refresh_token import RefreshTokenRequest
 
 router = APIRouter(
     prefix="",
@@ -42,3 +43,8 @@ async def login(
     return await auth_service.login(
         user_login,
     )
+
+
+@router.post("/refresh")
+async def refresh_token(request:RefreshTokenRequest,
+auth_service:AuthService=Depends(get_auth_service),)

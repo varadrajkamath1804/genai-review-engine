@@ -76,7 +76,46 @@ class AuthService:
             }
         )
 
+        refresh_token = JWTManager.create_refresh_token(
+            data={
+                "sub": str(user.id),
+            }
+        )
         return TokenResponse(
             access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="Bearer",
+        )
+
+    async def refresh_token(
+        self,
+        refresh_token: str,
+    ) -> TokenResponse:
+        payload = JWTManager.decode_token(
+            refresh_token,
+        )
+        user_id = payload.get("sub")
+
+        if user_id is None:
+            raise InvalidCredentialsException()
+
+        user = await self.user_repository.get_by_id(
+            int(user_id),
+        )
+
+        if user is None:
+            raise InvalidCredentialsException()
+
+        access_token = JWTManager.create_access_token(
+            data={
+                "sub": str(user.id),
+                "email": user.email,
+                "role": user.role.value,
+            }
+        )
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
             token_type="Bearer",
         )
