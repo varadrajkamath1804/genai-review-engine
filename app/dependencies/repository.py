@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies.database import get_db
 from app.repositories.review_repository import ReviewRepository
 from app.repositories.user_repository import UserRepository
+from app.repositories.refresh_token_repository import RefreshTokenRepository
 
 
 def get_review_repository(
@@ -13,6 +14,12 @@ def get_review_repository(
 
 
 def get_user_repository(
-    db=Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> UserRepository:
     return UserRepository(db)
+
+
+def get_refresh_token_repository(
+    db: AsyncSession = Depends(get_db),
+) -> RefreshTokenRepository:
+    return RefreshTokenRepository(db)

@@ -1,3 +1,7 @@
+from datetime import UTC, datetime, timedelta
+
+from app.core.config import get_settings
+from app.db.models.refresh_token import RefreshToken
 from app.db.models.user import User
 from app.models.user.user_login import UserLogin
 from app.security.jwt import JWTManager
@@ -5,6 +9,7 @@ from app.exceptions.user import UserAlreadyExistsException, InvalidCredentialsEx
 from app.models.user.user_create import UserCreate
 from app.models.user.user_response import UserResponse
 from app.repositories.user_repository import UserRepository
+from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.security.hashing import PasswordHasher
 from app.models.user.token_response import TokenResponse
 
@@ -13,8 +18,10 @@ class AuthService:
     def __init__(
         self,
         user_repository: UserRepository,
+        refresh_token_repository: RefreshTokenRepository,
     ):
         self.user_repository = user_repository
+        self.refresh_token_repository = refresh_token_repository
 
     async def signup(
         self,
@@ -54,6 +61,7 @@ class AuthService:
         """
         Authenticate a user and return a JWT.
         """
+        settings = get_settings()
 
         user = await self.user_repository.get_by_email(
             user_login.email,
@@ -73,14 +81,29 @@ class AuthService:
                 "sub": str(user.id),
                 "email": user.email,
                 "role": user.role.value,
+                "type": "access",
             }
         )
 
         refresh_token = JWTManager.create_refresh_token(
             data={
                 "sub": str(user.id),
+                "type": "refresh",
             }
         )
+
+        refresh_token_db = RefreshToken(
+            user_id=user.id,
+            token=refresh_token,
+            expires_at=datetime.now(UTC)
+            + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+            created_at=datetime.now(UTC),
+        )
+
+        await self.refresh_token_repository.save(
+            refresh_token_db,
+        )
+
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
@@ -91,9 +114,24 @@ class AuthService:
         self,
         refresh_token: str,
     ) -> TokenResponse:
+        settings = get_settings()
+
+        stored_token = await self.refresh_token_repository.get_by_token(
+            refresh_token,
+        )
+
+        if stored_token is None:
+            raise InvalidCredentialsException()
+
+        await self.refresh_token_repository.delete(stored_token)
+
         payload = JWTManager.decode_token(
             refresh_token,
         )
+
+        if payload.get("type") != "refresh":
+            raise InvalidCredentialsException()
+
         user_id = payload.get("sub")
 
         if user_id is None:
@@ -111,11 +149,53 @@ class AuthService:
                 "sub": str(user.id),
                 "email": user.email,
                 "role": user.role.value,
+                "type": "access_token",
             }
+        )
+
+        new_refresh_token = JWTManager.create_refresh_token(
+            data={
+                "sub": str(user.id),
+                "type": "refresh",
+            }
+        )
+        refresh_token_db = RefreshToken(
+            user_id=user.id,
+            token=new_refresh_token,
+            expires_at=datetime.now(UTC)
+            + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+            created_at=datetime.now(UTC),
+        )
+
+        await self.refresh_token_repository.save(
+            refresh_token_db,
         )
 
         return TokenResponse(
             access_token=access_token,
-            refresh_token=refresh_token,
+            refresh_token=new_refresh_token,
             token_type="Bearer",
+        )
+
+    async def logout(
+        self,
+        refresh_token: str,
+    ) -> None:
+        stored_token = await self.refresh_token_repository.get_by_token(
+            refresh_token,
+        )
+
+        if not stored_token:
+            raise InvalidCredentialsException
+
+        await self.refresh_token_repository.delete_by_token(
+            refresh_token,
+        )
+
+    async def logout_all(
+        self,
+        user_id: int,
+    ) -> None:
+        await self.refresh_token_repository.delete_all_by_user_id(
+            user_id,
         )
