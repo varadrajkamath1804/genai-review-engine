@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from fastapi import FastAPI
-
+from fastapi.middleware.cors import CORSMiddleware
 from app.clients.groq import create_groq_client
 from app.core.logging_config import configure_logging
 from app.exceptions.handlers import register_exception_handlers
@@ -10,6 +10,7 @@ from app.middleware.request_logging import RequestLoggingMiddleware
 from app.routers.auth import router as auth_router
 from app.routers.health import router as health_router
 from app.routers.reviews import router as review_router
+from app.middleware.security_headers import SecurityHeadersMiddleware
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -36,6 +37,16 @@ register_exception_handlers(app)
 
 app.add_middleware(
     RequestLoggingMiddleware,
+)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(auth_router)
