@@ -61,10 +61,12 @@ async def refresh_token(
 @router.post("/logout")
 async def logout(
     request: LogoutRequest,
+    current_user=Depends(get_current_user),
     auth_service: AuthService = Depends(get_auth_service),
 ):
     await auth_service.logout(
         request.refresh_token,
+        user_id=current_user.id,
     )
 
     return {

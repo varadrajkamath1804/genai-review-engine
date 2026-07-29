@@ -5,7 +5,14 @@ from app.db.models.refresh_token import RefreshToken
 from app.db.models.user import User
 from app.models.user.user_login import UserLogin
 from app.security.jwt import JWTManager
-from app.exceptions.user import UserAlreadyExistsException, InvalidCredentialsException
+from app.exceptions import (
+    TokenExpiredException,
+    TokenInvalidException,
+    TokenRevokedException,
+    UserAlreadyExistsException,
+    InvalidCredentialsException,
+)
+from app.services.token_blacklist import TokenBlacklistService
 from app.models.user.user_create import UserCreate
 from app.models.user.user_response import UserResponse
 from app.repositories.user_repository import UserRepository
@@ -19,9 +26,11 @@ class AuthService:
         self,
         user_repository: UserRepository,
         refresh_token_repository: RefreshTokenRepository,
+        blacklist_service: TokenBlacklistService,
     ):
         self.user_repository = user_repository
         self.refresh_token_repository = refresh_token_repository
+        self.blacklist_service = blacklist_service
 
     async def signup(
         self,
@@ -116,6 +125,9 @@ class AuthService:
     ) -> TokenResponse:
         settings = get_settings()
 
+        if await self.blacklist_service.is_blacklisted(refresh_token):
+            raise TokenRevokedException()
+
         stored_token = await self.refresh_token_repository.get_by_token(
             refresh_token,
         )
@@ -171,6 +183,12 @@ class AuthService:
             refresh_token_db,
         )
 
+        await self.blacklist_service.add_to_blacklist(
+            token=refresh_token,
+            user_id=str(user.id),
+            ttl=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        )
+
         return TokenResponse(
             access_token=access_token,
             refresh_token=new_refresh_token,
@@ -180,7 +198,16 @@ class AuthService:
     async def logout(
         self,
         refresh_token: str,
+        user_id: int,
     ) -> None:
+
+        settings = get_settings()
+        await self.blacklist_service.add_to_blacklist(
+            token=refresh_token,
+            user_id=str(user_id),
+            ttl=settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        )
+
         stored_token = await self.refresh_token_repository.get_by_token(
             refresh_token,
         )
