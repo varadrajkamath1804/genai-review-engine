@@ -14,6 +14,7 @@ from app.dependencies.ai import get_ai_service
 from app.dependencies.current_user import get_current_user
 
 router = APIRouter(
+    prefix="/ai",
     tags=["Reviews"],
 )
 

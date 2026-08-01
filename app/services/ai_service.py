@@ -11,6 +11,7 @@ from app.models.review.update_review import UpdateReview
 from app.models.review.review_response import ReviewResponse
 from app.models.review.sentiment import SentimentResponse
 from app.repositories.review_repository import ReviewRepository
+from app.services.cache_service import CacheService
 
 logger = logging.getLogger(__name__)
 
@@ -29,11 +30,27 @@ class AIService:
         self.client = client
         self.settings = settings
         self.review_repository = review_repository
+        self.cache_service = CacheService()
 
     async def analyze_review(
         self,
         review: ReviewInput,
     ) -> SentimentResponse:
+        cached = await self.cache_service.get(review.review)
+        if cached:
+            logger.info(f"✅ Cache hit for review: {review.review[:50]}...")
+            validated_response = SentimentResponse.model_validate(cached)
+
+            review_entity = Review(
+                review=review.review,
+                sentiment=validated_response.sentiment,
+                confidence=validated_response.confidence,
+            )
+            await self.review_repository.save(review_entity)
+            return validated_response
+
+        logger.info(f"❌ Cache miss for review: {review.review[:50]}...")
+
         messages = [
             {
                 "role": "system",
@@ -69,6 +86,12 @@ class AIService:
         parsed_response = json.loads(content)
 
         validated_response = SentimentResponse.model_validate(parsed_response)
+
+        await self.cache_service.set(
+            review.review,
+            parsed_response,  # Save the raw dict
+        )
+        logger.info(f"✅ Cached review: {review.review[:50]}...")
 
         review_entity = Review(
             review=review.review,
@@ -173,3 +196,9 @@ class AIService:
         if review is None:
             raise ReviewNotFoundException(review_id)
         await self.review_repository.delete(review)
+
+    async def invalidate_cache(
+        self,
+        review_text: str,
+    ) -> bool:
+        return await self.cache_service.invalidate(review_text)
