@@ -6,10 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.clients.groq import create_groq_client
 from app.core.logging_config import configure_logging
 from app.exceptions.handlers import register_exception_handlers
-from app.middleware.request_logging import RequestLoggingMiddleware
 from app.routers.auth import router as auth_router
 from app.routers.health import router as health_router
 from app.routers.reviews import router as review_router
+from app.middleware.request_logging import RequestLoggingMiddleware
+from app.middleware.rate_limit import RateLimitMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 
 configure_logging()
@@ -35,9 +36,8 @@ app = FastAPI(
 
 register_exception_handlers(app)
 
-app.add_middleware(
-    RequestLoggingMiddleware,
-)
+app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,

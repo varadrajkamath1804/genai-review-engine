@@ -17,6 +17,7 @@ from app.exceptions.auth import (
     TokenInvalidException,
     TokenRevokedException,
     TokenMissingException,
+    RateLimitExceededException,
 )
 
 __all__ = [
@@ -29,10 +30,10 @@ __all__ = [
     "ForbiddenException",
     # Review
     "ReviewNotFoundException",
-    "ReviewPermissionDeniedException",
     # Auth (NEW)
     "TokenExpiredException",
     "TokenInvalidException",
     "TokenRevokedException",
     "TokenMissingException",
+    "RateLimitExceededException",
 ]

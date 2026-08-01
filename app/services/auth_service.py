@@ -213,7 +213,7 @@ class AuthService:
         )
 
         if not stored_token:
-            raise InvalidCredentialsException
+            raise InvalidCredentialsException()
 
         await self.refresh_token_repository.delete_by_token(
             refresh_token,

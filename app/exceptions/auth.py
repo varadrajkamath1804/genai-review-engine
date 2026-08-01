@@ -48,3 +48,14 @@ class TokenMissingException(BaseAppException):
             error_code="TOKEN_MISSING",
             message="Authentication token is missing.",
         )
+
+
+class RateLimitExceededException(BaseAppException):
+    """Raised when Rate limit exceeded"""
+
+    def __init__(self):
+        super().__init__(
+            status_code=HTTPStatus.TOO_MANY_REQUESTS,
+            error_code="RATE_LIMIT_EXCEEDED",
+            message="Too many requests. Try again later.",
+        )
