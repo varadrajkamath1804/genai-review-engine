@@ -104,7 +104,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         window_seconds: int,
     ) -> Tuple[bool, int, int]:
 
-        #  Get Current Time
+        # Get Current Time
         now = int(time.time())
 
         # Calculate Window Start
@@ -116,9 +116,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Count Current Requests
         count = await redis.zcard(key)
 
-        #  Check if Limit Exceeded
+        # Check if Limit Exceeded
         if count >= max_requests:
-            reset_time = window_start + window_seconds
+            # Get the oldest request in the window
+            oldest = await redis.zrange(key, 0, 0, withscores=True)
+            if oldest:
+                oldest_time = oldest[0][1]  # Timestamp of oldest request
+                reset_time = oldest_time + window_seconds
+            else:
+                reset_time = now + window_seconds
             return True, 0, reset_time
 
         # Add Current Request (If Allowed)
@@ -130,7 +136,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Calculate Remaining Requests
         remaining = max_requests - count - 1
 
-        # Calculate Reset Time
-        reset_time = window_start + window_seconds
+        # Calculate Reset Time (when the oldest request expires)
+        oldest = await redis.zrange(key, 0, 0, withscores=True)
+        if oldest:
+            oldest_time = oldest[0][1]
+            reset_time = oldest_time + window_seconds
+        else:
+            reset_time = now + window_seconds
 
         return False, remaining, reset_time
