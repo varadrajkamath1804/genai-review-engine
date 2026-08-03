@@ -19,6 +19,11 @@ from app.exceptions.auth import (
     TokenMissingException,
     RateLimitExceededException,
 )
+from app.exceptions.job import (
+    JobNotCompletedException,
+    JobProcessingException,
+    JobNotFoundException,
+)
 
 __all__ = [
     # Base
@@ -36,4 +41,7 @@ __all__ = [
     "TokenRevokedException",
     "TokenMissingException",
     "RateLimitExceededException",
+    "JobNotCompletedException",
+    "JobProcessingException",
+    "JobNotFoundException",
 ]

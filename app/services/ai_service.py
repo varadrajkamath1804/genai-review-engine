@@ -12,6 +12,7 @@ from app.models.review.review_response import ReviewResponse
 from app.models.review.sentiment import SentimentResponse
 from app.repositories.review_repository import ReviewRepository
 from app.services.cache_service import CacheService
+from app.services.job_services import JobService
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +27,14 @@ class AIService:
         client: AsyncGroq,
         settings: Settings,
         review_repository: ReviewRepository,
+        cache_service: CacheService,
+        job_service: JobService,
     ):
         self.client = client
         self.settings = settings
         self.review_repository = review_repository
-        self.cache_service = CacheService()
+        self.cache_service = cache_service
+        self.job_service = job_service
 
     async def analyze_review(
         self,
