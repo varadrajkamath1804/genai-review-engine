@@ -12,6 +12,7 @@ from app.models.review.sentiment import SentimentResponse
 from app.services.ai_service import AIService
 from app.dependencies.ai import get_ai_service
 from app.dependencies.current_user import get_current_user
+from app.dependencies.rate_limit import rate_limit
 
 router = APIRouter(
     prefix="/ai",
@@ -24,6 +25,7 @@ async def analyze_review(
     review: ReviewInput,
     ai_service: AIService = Depends(get_ai_service),
     current_user: Users = Depends(get_current_user),
+    _: None = Depends(rate_limit),
 ) -> SentimentResponse:
 
     return await ai_service.analyze_review(
@@ -45,6 +47,7 @@ async def get_all_reviews(
     order: SortOrder = SortOrder.asc,
     ai_service: AIService = Depends(get_ai_service),
     current_user: Users = Depends(get_current_user),
+    # _: None = Depends(rate_limit),
 ):
     return await ai_service.get_all_reviews(
         page,

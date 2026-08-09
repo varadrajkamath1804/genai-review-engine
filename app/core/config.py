@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: str | None = None
     REDIS_CACHE_TTL: int = 300
     REDIS_LOCK_TTL: int = 30
+    REDIS_RATE_LIMIT: int = 5
+    REDIS_RATE_WINDOW: int = 60
 
     model_config = SettingsConfigDict(
         env_file=".env",
