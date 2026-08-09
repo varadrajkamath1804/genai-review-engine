@@ -4,7 +4,7 @@ from sqlalchemy import text
 from app.core.database import engine
 
 router = APIRouter(
-    prefix="/db",
+    prefix="/connection",
     tags=["Health"],
 )
 

@@ -12,13 +12,13 @@ from app.models.user.token_response import TokenResponse
 from app.models.user.refresh_token import RefreshTokenRequest
 
 router = APIRouter(
-    prefix="",
+    prefix="/auth",
     tags=["Authentication"],
 )
 
 
 @router.post(
-    "/signup",
+    "/register",
     response_model=UserResponse,
     status_code=HTTPStatus.CREATED,
 )

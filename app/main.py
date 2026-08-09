@@ -11,6 +11,7 @@ from app.routers.auth import router as auth_router
 from app.routers.health import router as health_router
 from app.routers.reviews import router as review_router
 from app.middleware.security_headers import SecurityHeadersMiddleware
+from app.core.redis import create_redis_client
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -19,14 +20,18 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.groq = create_groq_client()
+    app.state.redis = create_redis_client()
 
     logger.info("Groq client initialized")
+    logger.info("Redis client initialized")
 
     yield
 
     await app.state.groq.close()
+    await app.state.redis.close()
 
     logger.info("Groq client closed")
+    logger.info("Redis Client Closed")
 
 
 app = FastAPI(
