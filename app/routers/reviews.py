@@ -13,6 +13,9 @@ from app.services.ai_service import AIService
 from app.dependencies.ai import get_ai_service
 from app.dependencies.current_user import get_current_user
 from app.dependencies.rate_limit import rate_limit
+from app.models.review.semantic_search import SemanticSearchRequest
+from app.services.semantic_search_service import SemanticSearchService
+from app.dependencies.repository import get_semantic_search_service
 
 router = APIRouter(
     prefix="/ai",
@@ -97,3 +100,21 @@ async def delete_review(
     current_user: Users = Depends(RoleChecker(Role.ADMIN)),
 ):
     await ai_service.delete_review(review_id)
+
+
+@router.post(
+    "/reviews/semantic-search",
+    response_model=list[ReviewResponse],
+)
+async def semantic_search(
+    request: SemanticSearchRequest,
+    semantic_search_service: SemanticSearchService = Depends(
+        get_semantic_search_service
+    ),
+) -> list[ReviewResponse]:
+    reviews = await semantic_search_service.semantic_search(
+        query=request.query,
+        limit=request.limit,
+    )
+
+    return [ReviewResponse.model_validate(review) for review in reviews]
