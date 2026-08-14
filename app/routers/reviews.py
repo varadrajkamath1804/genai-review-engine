@@ -16,6 +16,8 @@ from app.dependencies.rate_limit import rate_limit
 from app.models.review.semantic_search import SemanticSearchRequest
 from app.services.semantic_search_service import SemanticSearchService
 from app.dependencies.repository import get_semantic_search_service
+from app.dependencies.rag import get_rag_service
+from app.services.rag_service import RAGService
 
 router = APIRouter(
     prefix="/ai",
@@ -118,3 +120,14 @@ async def semantic_search(
     )
 
     return [ReviewResponse.model_validate(review) for review in reviews]
+
+
+@router.post("/rag")
+async def rag_answer(
+    request: SemanticSearchRequest, rag_service: RAGService = Depends(get_rag_service)
+) -> dict[str, str]:
+    answer = await rag_service.generate_answer(
+        query=request.query,
+        limit=request.limit,
+    )
+    return {"answer": answer}
