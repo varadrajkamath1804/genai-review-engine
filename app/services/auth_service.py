@@ -70,6 +70,9 @@ class AuthService:
         if not user:
             raise InvalidCredentialsException()
 
+        # user_login.password = "MyPassword123"
+        # user.password      = "$2b$12$...."   ← bcrypt hash from DB
+
         if not PasswordHasher.verify_password(
             plain_password=user_login.password,
             hashed_password=user.password,
@@ -132,7 +135,7 @@ class AuthService:
         if payload.get("type") != "refresh":
             raise InvalidCredentialsException()
 
-        user_id = payload.get("sub")
+        user_id = payload.get("sub")  # Used sub to store user_id while creating tokrn
 
         if user_id is None:
             raise InvalidCredentialsException()
