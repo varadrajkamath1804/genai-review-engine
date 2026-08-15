@@ -8,6 +8,7 @@ from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.dependencies.embedding import get_embedding_service
 from app.services.embedding_service import EmbeddingService
 from app.services.semantic_search_service import SemanticSearchService
+from app.core.config import get_settings, Settings
 
 
 def get_review_repository(
@@ -35,9 +36,13 @@ def get_semantic_search_service(
     review_repository: ReviewRepository = Depends(
         get_review_repository,
     ),
+    settings: Settings = Depends(
+        get_settings,
+    ),
 ) -> SemanticSearchService:
 
     return SemanticSearchService(
         embedding_service=embedding_service,
         review_repository=review_repository,
+        settings=settings,
     )

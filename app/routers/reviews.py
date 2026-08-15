@@ -18,6 +18,7 @@ from app.services.semantic_search_service import SemanticSearchService
 from app.dependencies.repository import get_semantic_search_service
 from app.dependencies.rag import get_rag_service
 from app.services.rag_service import RAGService
+from app.models.review.rag_response import RAGResponse
 
 router = APIRouter(
     prefix="/ai",
@@ -125,9 +126,8 @@ async def semantic_search(
 @router.post("/rag")
 async def rag_answer(
     request: SemanticSearchRequest, rag_service: RAGService = Depends(get_rag_service)
-) -> dict[str, str]:
-    answer = await rag_service.generate_answer(
+) -> RAGResponse:
+    return await rag_service.generate_answer(
         query=request.query,
         limit=request.limit,
     )
-    return {"answer": answer}

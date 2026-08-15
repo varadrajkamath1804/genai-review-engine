@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     REDIS_LOCK_TTL: int = 30
     REDIS_RATE_LIMIT: int = 5
     REDIS_RATE_WINDOW: int = 60
+    RAG_SIMILARITY_THRESHOLD: float = 0.6
 
     model_config = SettingsConfigDict(
         env_file=".env",
