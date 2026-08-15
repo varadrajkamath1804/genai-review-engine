@@ -1,10 +1,11 @@
+import logging
+from http import HTTPStatus
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from http import HTTPStatus
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.exceptions.base import BaseAppException
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,17 @@ def register_exception_handlers(app: FastAPI) -> None:
     async def base_exception_handler(
         request: Request,
         exc: BaseAppException,
-    ):
+    ) -> JSONResponse:
+
+        # Log handled application exceptions.
+        logger.error(
+            "Application exception | " "Code: %s | Message: %s | Method: %s | Path: %s",
+            exc.error_code,
+            exc.message,
+            request.method,
+            request.url.path,
+        )
+
         return JSONResponse(
             status_code=exc.status_code,
             content={
@@ -34,6 +45,14 @@ def register_exception_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
 
         if exc.status_code == HTTPStatus.NOT_FOUND:
+
+            # Log requests to non-existent routes.
+            logger.warning(
+                "Route not found | Method: %s | Path: %s",
+                request.method,
+                request.url.path,
+            )
+
             return JSONResponse(
                 status_code=HTTPStatus.NOT_FOUND,
                 content={
@@ -44,6 +63,15 @@ def register_exception_handlers(app: FastAPI) -> None:
                     }
                 },
             )
+
+        # Log handled HTTP exceptions.
+        logger.warning(
+            "HTTP exception | " "Status: %s | Method: %s | Path: %s | Message: %s",
+            exc.status_code,
+            request.method,
+            request.url.path,
+            exc.detail,
+        )
 
         return JSONResponse(
             status_code=exc.status_code,
@@ -62,10 +90,11 @@ def register_exception_handlers(app: FastAPI) -> None:
         exc: Exception,
     ) -> JSONResponse:
 
+        # Log unexpected exceptions with the full traceback.
         logger.exception(
-            "Unhandled exception while processing %s %s",
+            "Unhandled exception | Method: %s | Path: %s",
             request.method,
-            request.url,
+            request.url.path,
         )
 
         return JSONResponse(

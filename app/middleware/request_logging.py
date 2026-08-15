@@ -38,7 +38,25 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             request.url.path,
         )
 
-        response = await call_next(request)
+        try:
+            response = await call_next(request)
+
+        except Exception:
+            duration = (time.perf_counter() - start_time) * 1000
+
+            # logger.exception() automatically includes the full traceback.
+            logger.exception(
+                "[Correlation: %s] [Request: %s] Request Failed | "
+                "%s %s | Duration: %.2f ms",
+                correlation_id,
+                request_id,
+                request.method,
+                request.url.path,
+                duration,
+            )
+
+            # Let the centralized exception handler process the exception.
+            raise
 
         duration = (time.perf_counter() - start_time) * 1000
 
