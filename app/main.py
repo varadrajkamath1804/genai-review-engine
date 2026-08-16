@@ -12,6 +12,7 @@ from app.routers.health import router as health_router
 from app.routers.reviews import router as review_router
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.core.redis import create_redis_client
+from app.services.embedding_service import EmbeddingService
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -21,9 +22,11 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     app.state.groq = create_groq_client()
     app.state.redis = create_redis_client()
+    app.state.embedding = EmbeddingService()
 
     logger.info("Groq client initialized")
     logger.info("Redis client initialized")
+    logger.info("Embedding model initialized")
 
     yield
 
