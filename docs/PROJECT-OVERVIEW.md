@@ -1,9 +1,9 @@
-================================================================================
+
                     GENAI REVIEW ENGINE - PROJECT OVERVIEW
-================================================================================
+
 
 1. PROJECT OVERVIEW
-================================================================================
+
 
 1.1 Purpose
 -----------
@@ -29,9 +29,9 @@ semantic search, and Retrieval-Augmented Generation (RAG).
 - Technical evaluators of GenAI solutions
 - Students in AI/ML engineering
 
-================================================================================
+
 2. TECHNICAL STACK
-================================================================================
+
 
 2.1 Core Backend
 ----------------
@@ -74,9 +74,9 @@ semantic search, and Retrieval-Augmented Generation (RAG).
 - Pytest for unit/integration tests
 - Black & Flake8 for code quality
 
-================================================================================
+
 3. PROJECT STRUCTURE
-================================================================================
+
 
 genai-review-engine/
 ├── alembic/                     # Database migrations
@@ -110,9 +110,9 @@ genai-review-engine/
 ├── docker/                     # Docker configuration
 └── scripts/                    # Utility scripts
 
-================================================================================
+
 4. CORE COMPONENTS
-================================================================================
+
 
 4.1 Authentication System
 -------------------------
@@ -171,9 +171,9 @@ genai-review-engine/
 - Per-user/IP limits
 - 429 response handling
 
-================================================================================
+
 5. API ENDPOINTS
-================================================================================
+
 
 5.1 Authentication
 ------------------
@@ -206,9 +206,9 @@ genai-review-engine/
 - GET /api/v1/admin/reviews - List all reviews
 - DELETE /api/v1/admin/reviews/{review_id} - Delete review
 
-================================================================================
+
 6. DATA MODELS
-================================================================================
+
 
 6.1 User Model
 --------------
@@ -242,9 +242,9 @@ genai-review-engine/
 - suggested_rating: Integer
 - topics: List[String]
 
-================================================================================
+
 7. CURRENT STATUS & ROADMAP
-================================================================================
+
 
 7.1 Completed Features
 -----------------------
@@ -275,9 +275,9 @@ genai-review-engine/
 🔲 Production infrastructure
 🔲 Advanced monitoring and observability
 
-================================================================================
+
 8. GETTING STARTED
-================================================================================
+
 
 8.1 Prerequisites
 ------------------
@@ -305,6 +305,5 @@ Required environment variables:
 - ACCESS_TOKEN_EXPIRE_MINUTES: Access token expiry
 - REFRESH_TOKEN_EXPIRE_DAYS: Refresh token expiry
 
-================================================================================
+
                             END OF DOCUMENTATION
-================================================================================
