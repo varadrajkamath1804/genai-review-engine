@@ -306,4 +306,4 @@ Required environment variables:
 - REFRESH_TOKEN_EXPIRE_DAYS: Refresh token expiry
 
 
-                            END OF DOCUMENTATION
+# END OF DOCUMENTATION
