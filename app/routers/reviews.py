@@ -53,7 +53,7 @@ async def get_all_reviews(
     order: SortOrder = SortOrder.asc,
     ai_service: AIService = Depends(get_ai_service),
     current_user: Users = Depends(get_current_user),
-    # _: None = Depends(rate_limit),
+    _: None = Depends(rate_limit),
 ):
     return await ai_service.get_all_reviews(
         page,
@@ -102,7 +102,7 @@ async def delete_review(
     ai_service: AIService = Depends(get_ai_service),
     current_user: Users = Depends(RoleChecker(Role.ADMIN)),
 ):
-    await ai_service.delete_review(review_id)
+    return await ai_service.delete_review(review_id)
 
 
 @router.post(
