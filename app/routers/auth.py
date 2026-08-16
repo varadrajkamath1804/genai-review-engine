@@ -1,15 +1,17 @@
 from http import HTTPStatus
+
 from fastapi import APIRouter, Depends
+
 from app.db.models.user import User
 from app.dependencies.auth import get_auth_service
 from app.dependencies.current_user import get_current_user
+from app.models.user.logout_request import LogoutRequest
+from app.models.user.refresh_token import RefreshTokenRequest
+from app.models.user.token_response import TokenResponse
 from app.models.user.user_create import UserCreate
+from app.models.user.user_login import UserLogin
 from app.models.user.user_response import UserResponse
 from app.services.auth_service import AuthService
-from app.models.user.user_login import UserLogin
-from app.models.user.logout_request import LogoutRequest
-from app.models.user.token_response import TokenResponse
-from app.models.user.refresh_token import RefreshTokenRequest
 
 router = APIRouter(
     prefix="/auth",
@@ -26,9 +28,7 @@ async def signup(
     user: UserCreate,
     auth_service: AuthService = Depends(get_auth_service),
 ):
-    return await auth_service.signup(
-        user,
-    )
+    return await auth_service.signup(user)
 
 
 @router.post(
@@ -40,12 +40,7 @@ async def login(
     user_login: UserLogin,
     auth_service: AuthService = Depends(get_auth_service),
 ) -> TokenResponse:
-    """
-    Authenticate user and return JWT.
-    """
-    return await auth_service.login(
-        user_login,
-    )
+    return await auth_service.login(user_login)
 
 
 @router.post("/refresh")

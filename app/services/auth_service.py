@@ -1,6 +1,7 @@
 from datetime import UTC, datetime, timedelta
+from fastapi import Depends
 
-from app.core.config import get_settings
+from app.core.config import get_settings, Settings
 from app.db.models.refresh_token import RefreshToken
 from app.db.models.user import User
 from app.models.user.user_login import UserLogin
@@ -19,9 +20,11 @@ class AuthService:
         self,
         user_repository: UserRepository,
         refresh_token_repository: RefreshTokenRepository,
+        settings: Settings,
     ):
         self.user_repository = user_repository
         self.refresh_token_repository = refresh_token_repository
+        self.settings = settings
 
     async def signup(
         self,
@@ -61,8 +64,6 @@ class AuthService:
         """
         Authenticate a user and return a JWT.
         """
-        settings = get_settings()
-
         user = await self.user_repository.get_by_email(
             user_login.email,
         )
@@ -99,7 +100,7 @@ class AuthService:
             user_id=user.id,
             token=refresh_token,
             expires_at=datetime.now(UTC)
-            + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+            + timedelta(days=self.settings.REFRESH_TOKEN_EXPIRE_DAYS),
             created_at=datetime.now(UTC),
         )
 
@@ -117,7 +118,6 @@ class AuthService:
         self,
         refresh_token: str,
     ) -> TokenResponse:
-        settings = get_settings()
 
         stored_token = await self.refresh_token_repository.get_by_token(
             refresh_token,
@@ -166,7 +166,7 @@ class AuthService:
             user_id=user.id,
             token=new_refresh_token,
             expires_at=datetime.now(UTC)
-            + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
+            + timedelta(days=self.settings.REFRESH_TOKEN_EXPIRE_DAYS),
             created_at=datetime.now(UTC),
         )
 
