@@ -305,5 +305,3 @@ Required environment variables:
 - ACCESS_TOKEN_EXPIRE_MINUTES: Access token expiry
 - REFRESH_TOKEN_EXPIRE_DAYS: Refresh token expiry
 
-
-# END OF DOCUMENTATION
