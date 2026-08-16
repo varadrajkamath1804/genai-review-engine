@@ -18,7 +18,7 @@ class CacheService:
         self.settings = settings
 
     async def get(self, key: str) -> dict | None:
-        value = await self.redis.get(key)
+        value = await self.redis.get(key)  # Get value using cache_key
 
         if value is None:
             return None

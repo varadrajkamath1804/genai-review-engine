@@ -49,7 +49,7 @@ class AIService:
         cache_key = review_sentiment_key(review.review)
 
         # This lock prevents multiple requests from simultaneously
-        # calling the LLM for the exact same review.
+
         lock_key = f"lock:{cache_key}"
 
         # Check Redis before making an expensive Groq request.
@@ -82,11 +82,12 @@ class AIService:
 
         logger.info("Cache miss for review")
 
-        # Acquire a distributed Redis lock before calling Groq.
         # This prevents duplicate LLM requests when multiple clients
-        # submit the same review at approximately the same time.
+        # Check whether already this review is being checked using groq - if yes return lock value to check later
+
         lock_value = await self.cache_service.acquire_lock(lock_key)
 
+        # If lock is set from this request then returns the lock_value - if lock is already set then returns None
         if lock_value is None:
 
             logger.info("Another request is processing this review")
@@ -169,7 +170,7 @@ class AIService:
             validated_response = SentimentResponse.model_validate(parsed_response)
 
             # Store the sentiment result in Redis so future identical
-            # requests can avoid another Groq API call.
+            # requests can avoid another Groq API call. Cache Population
             await self.cache_service.set(
                 cache_key,
                 parsed_response,

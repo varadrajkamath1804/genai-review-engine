@@ -29,19 +29,3 @@ async def rate_limit(
 
     if not allowed:
         raise RateLimitException()
-
-
-# async def rate_limit(
-#     settings: Settings = Depends(get_settings), redis=Depends(get_redis)
-# ) -> None:
-
-#     rate_limiter = RateLimiter(redis)
-
-#     allowed = await rate_limiter.is_allowed(
-#         key="rate:global",
-#         limit=settings.REDIS_RATE_LIMIT,
-#         window=settings.REDIS_RATE_WINDOW,
-#     )
-
-#     if not allowed:
-#         raise RateLimitException()
