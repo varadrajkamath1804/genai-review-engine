@@ -1,7 +1,11 @@
+import logging
+
+from app.core.config import Settings
 from app.db.models.review import Review
 from app.repositories.review_repository import ReviewRepository
 from app.services.embedding_service import EmbeddingService
-from app.core.config import Settings
+
+logger = logging.getLogger(__name__)
 
 
 class SemanticSearchService:
@@ -22,14 +26,21 @@ class SemanticSearchService:
         limit: int = 5,
     ) -> list[Review]:
 
-        query_embedding = await self.embedding_service.generate_embedding(
-            query,
-        )
+        # Generate an embedding for the user's search query.
+        query_embedding = await self.embedding_service.generate_embedding(query)
 
+        logger.debug("Generated query embedding for semantic search")
+
+        # Search reviews using vector similarity.
         reviews = await self.review_repository.semantic_search(
             query_embedding=query_embedding,
             limit=limit,
             max_distance=self.settings.RAG_SIMILARITY_THRESHOLD,
+        )
+
+        logger.debug(
+            "Semantic search returned %d reviews",
+            len(reviews),
         )
 
         return reviews

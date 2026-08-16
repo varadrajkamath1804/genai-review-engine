@@ -8,10 +8,10 @@ def create_redis_client() -> Redis:
     # DEBUG ONLY:
     # This tells us whether a password is being loaded,
     # without exposing the actual password.
-    print("REDIS_HOST:", settings.REDIS_HOST)
-    print("REDIS_PORT:", settings.REDIS_PORT)
-    print("REDIS_DB:", settings.REDIS_DB)
-    print("REDIS_PASSWORD SET:", bool(settings.REDIS_PASSWORD))
+    # print("REDIS_HOST:", settings.REDIS_HOST)
+    # print("REDIS_PORT:", settings.REDIS_PORT)
+    # print("REDIS_DB:", settings.REDIS_DB)
+    # print("REDIS_PASSWORD SET:", bool(settings.REDIS_PASSWORD))
 
     return Redis(
         host=settings.REDIS_HOST,

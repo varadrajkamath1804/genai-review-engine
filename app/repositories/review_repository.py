@@ -120,7 +120,10 @@ class ReviewRepository:
         # and every stored review embedding.
         #
         # Smaller cosine distance = more semantically similar.
+
+        # checks embedding of review with user given query (Review.embedding) with (query_embedding)
         distance = Review.embedding.cosine_distance(query_embedding)
+        # print("Distance:", distance)
 
         # Ask PostgreSQL + pgvector to:
         # 1. Compare the query vector against stored vectors.
@@ -129,7 +132,7 @@ class ReviewRepository:
         query = (
             select(Review)
             .where(Review.embedding.is_not(None))
-            .where(distance <= max_distance)
+            # .where(distance <= max_distance)   kept of for now less data present in db
             .order_by(distance)
             .limit(limit)
         )
@@ -138,41 +141,4 @@ class ReviewRepository:
         result = await self.db.execute(query)
 
         # Convert database rows into Review objects.
-        return result.scalars().all()
-
-    async def semantic_search(
-        self,
-        query_embedding: list[float],
-        limit: int = 5,
-        max_distance: float = 0.6,
-    ) -> list[Review]:
-
-        # ---------------------------------------------------------
-        # STEP 1: Calculate cosine distance
-        # ---------------------------------------------------------
-        # Smaller distance means the review is more similar
-        # to the user's query.
-        distance = Review.embedding.cosine_distance(query_embedding)
-
-        # ---------------------------------------------------------
-        # STEP 2: Retrieve only relevant reviews
-        # ---------------------------------------------------------
-        # Reviews whose cosine distance is greater than
-        # max_distance are considered insufficiently similar.
-        query = (
-            select(Review)
-            .where(Review.embedding.is_not(None))
-            .where(distance <= max_distance)
-            .order_by(distance)
-            .limit(limit)
-        )
-
-        # ---------------------------------------------------------
-        # STEP 3: Execute the query
-        # ---------------------------------------------------------
-        result = await self.db.execute(query)
-
-        # ---------------------------------------------------------
-        # STEP 4: Convert database rows into Review objects
-        # ---------------------------------------------------------
         return result.scalars().all()
