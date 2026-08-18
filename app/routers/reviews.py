@@ -5,6 +5,7 @@ from typing import Annotated
 from app.models.user.enums import Role
 from app.dependencies.rbac import RoleChecker
 from app.models.review.query import SortField, SortOrder
+from app.db.models.user import User
 from app.models.review.review import ReviewInput
 from app.models.review.review_response import ReviewResponse
 from app.models.review.update_review import UpdateReview
@@ -30,7 +31,7 @@ router = APIRouter(
 async def analyze_review(
     review: ReviewInput,
     ai_service: AIService = Depends(get_ai_service),
-    current_user: Users = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     _: None = Depends(rate_limit),
 ) -> SentimentResponse:
 
@@ -52,7 +53,7 @@ async def get_all_reviews(
     sort_by: SortField = SortField.id,
     order: SortOrder = SortOrder.asc,
     ai_service: AIService = Depends(get_ai_service),
-    current_user: Users = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     _: None = Depends(rate_limit),
 ):
     return await ai_service.get_all_reviews(
@@ -73,7 +74,7 @@ async def get_all_reviews(
 async def get_review(
     review_id: int,
     ai_service: AIService = Depends(get_ai_service),
-    current_user: Users = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     return await ai_service.get_review(
         review_id,
@@ -88,7 +89,7 @@ async def update_review(
     review_id: int,
     review: UpdateReview,
     ai_service: AIService = Depends(get_ai_service),
-    current_user: Users = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     return await ai_service.update_review(
         review_id,
@@ -100,7 +101,7 @@ async def update_review(
 async def delete_review(
     review_id: int,
     ai_service: AIService = Depends(get_ai_service),
-    current_user: Users = Depends(RoleChecker(Role.ADMIN)),
+    current_user: User = Depends(RoleChecker(Role.ADMIN)),
 ):
     return await ai_service.delete_review(review_id)
 
