@@ -1,8 +1,12 @@
-from sqlalchemy.orm import Mapped, mapped_column
+from typing import TYPE_CHECKING
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Text, Float, String
 from pgvector.sqlalchemy import Vector
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.db.models.review_chunk import ReviewChunk
 
 
 class Review(Base):
@@ -26,4 +30,8 @@ class Review(Base):
     embedding: Mapped[list[float] | None] = mapped_column(
         Vector(384),
         nullable=True,
+    )
+
+    chunks: Mapped[list["ReviewChunk"]] = relationship(
+        back_populates="review",
     )
