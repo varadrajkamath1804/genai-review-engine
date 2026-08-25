@@ -6,10 +6,12 @@ from app.clients.groq import get_groq_client
 from app.dependencies.repository import get_review_repository
 from app.services.ai_service import AIService
 from app.repositories.review_repository import ReviewRepository
+from app.dependencies.rag import get_rag_ingestion_service
 from app.dependencies.redis import get_cache_service
 from app.services.cache_service import CacheService
 from app.dependencies.embedding import get_embedding_service
 from app.services.embedding_service import EmbeddingService
+from app.services.rag_ingestion_service import RAGIngestionService
 
 
 def get_ai_service(
@@ -18,6 +20,7 @@ def get_ai_service(
     review_repository: ReviewRepository = Depends(get_review_repository),
     cache_service: CacheService = Depends(get_cache_service),
     embedding_service: EmbeddingService = Depends(get_embedding_service),
+    rag_ingestion_service: RAGIngestionService = Depends(get_rag_ingestion_service),
 ) -> AIService:
     return AIService(
         client,
@@ -25,4 +28,5 @@ def get_ai_service(
         review_repository,
         cache_service,
         embedding_service,
+        rag_ingestion_service,
     )

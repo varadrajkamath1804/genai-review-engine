@@ -16,10 +16,10 @@ from app.dependencies.current_user import get_current_user
 from app.dependencies.rate_limit import rate_limit
 from app.models.review.semantic_search import SemanticSearchRequest
 from app.services.semantic_search_service import SemanticSearchService
-from app.dependencies.repository import get_semantic_search_service
 from app.dependencies.rag import get_rag_service
 from app.services.rag_service import RAGService
 from app.models.review.rag_response import RAGResponse
+from app.dependencies.repository import get_semantic_search_service
 
 router = APIRouter(
     prefix="/ai",
@@ -131,4 +131,17 @@ async def rag_answer(
     return await rag_service.generate_answer(
         query=request.query,
         limit=request.limit,
+    )
+
+
+@router.post(
+    "/reviews/{review_id}/ingest",
+    status_code=HTTPStatus.CREATED,
+)
+async def ingest_review(
+    review_id: int,
+    ai_service: AIService = Depends(get_ai_service),
+):
+    return await ai_service.ingest_review(
+        review_id=review_id,
     )

@@ -16,6 +16,7 @@ from app.repositories.review_repository import ReviewRepository
 from app.services.cache_service import CacheService
 from app.core.cache_keys import review_sentiment_key
 from app.services.embedding_service import EmbeddingService
+from app.services.rag_ingestion_service import RAGIngestionService
 
 logger = logging.getLogger(__name__)
 
@@ -32,12 +33,14 @@ class AIService:
         review_repository: ReviewRepository,
         cache_service: CacheService,
         embedding_service: EmbeddingService,
+        rag_ingestion_service: RAGIngestionService,
     ):
         self.client = client
         self.settings = settings
         self.review_repository = review_repository
         self.cache_service = cache_service
         self.embedding_service = embedding_service
+        self.rag_ingestion_service = rag_ingestion_service
 
     async def analyze_review(
         self,
@@ -364,3 +367,22 @@ class AIService:
         cache_key = review_sentiment_key(review_text)
 
         await self.cache_service.invalidate(cache_key)
+
+    async def ingest_review(
+        self,
+        review_id: int,
+    ):
+        review = await self.review_repository.get_by_id(
+            review_id,
+        )
+        if review is None:
+            raise ReviewNotFoundException()
+
+        chunks = await self.rag_ingestion_service.ingest_review(
+            review=review,
+        )
+
+        return {
+            "review_id": review_id,
+            "chunks_created": len(chunks),
+        }
