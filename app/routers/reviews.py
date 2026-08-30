@@ -2,6 +2,7 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends, Query
 
 from typing import Annotated
+from app.models.review.ingestion_response_model import IngestionResponse
 from app.models.user.enums import Role
 from app.dependencies.rbac import RoleChecker
 from app.models.review.query import SortField, SortOrder
@@ -141,7 +142,7 @@ async def rag_answer(
 async def ingest_review(
     review_id: int,
     ai_service: AIService = Depends(get_ai_service),
-):
+) -> IngestionResponse:
     return await ai_service.ingest_review(
         review_id=review_id,
     )

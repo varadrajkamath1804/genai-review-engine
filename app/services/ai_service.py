@@ -6,6 +6,7 @@ import asyncio
 from app.exceptions.review import ReviewNotFoundException
 from app.exceptions.cache import CacheLockException
 from app.db.models.review import Review
+from app.models.review.ingestion_response_model import IngestionResponse
 from app.models.review.query import SortField, SortOrder
 from app.core.config import Settings
 from app.models.review.review import ReviewInput
@@ -343,7 +344,9 @@ class AIService:
 
         # Fetch the review before deleting it so we can obtain
         # the review text required to invalidate its Redis cache.
-        review = await self.review_repository.get_by_id(review_id)
+        review = await self.review_repository.get_by_id(
+            review_id,
+        )
 
         if review is None:
             raise ReviewNotFoundException(review_id)
@@ -371,18 +374,29 @@ class AIService:
     async def ingest_review(
         self,
         review_id: int,
-    ):
+    ) -> IngestionResponse:
+
+        # Fetch the review from the database.
         review = await self.review_repository.get_by_id(
             review_id,
         )
+
+        # Raise an exception if the review does not exist.
         if review is None:
             raise ReviewNotFoundException()
 
+        # Send the review through the RAG ingestion pipeline.
         chunks = await self.rag_ingestion_service.ingest_review(
             review=review,
         )
 
-        return {
+        # Create the response data.
+        response_data = {
             "review_id": review_id,
             "chunks_created": len(chunks),
         }
+
+        # Validate and convert the data into the response model.
+        return IngestionResponse.model_validate(
+            response_data,
+        )
