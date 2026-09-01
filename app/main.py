@@ -9,6 +9,7 @@ from app.exceptions.handlers import register_exception_handlers
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.routers.auth import router as auth_router
 from app.routers.health import router as health_router
+from app.routers.documents import router as documents_router
 from app.routers.reviews import router as review_router
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.core.redis import create_redis_client
@@ -60,3 +61,4 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(review_router)
 app.include_router(health_router)
+app.include_router(documents_router)
