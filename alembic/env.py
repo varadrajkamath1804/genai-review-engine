@@ -2,6 +2,8 @@ from app.db.base import Base
 from app.db.models.review import Review
 from app.db.models.user import User
 from app.db.models.refresh_token import RefreshToken
+from app.db.models.document import Document
+from app.db.models.document_chunk import DocumentChunk
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
